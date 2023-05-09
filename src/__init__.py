@@ -4,7 +4,6 @@ from os import environ
 from src.database import db,ma,migrate,jwt
 #from src.endpoints.products import products
 from src.endpoints.users import users
-from src.endpoints.houses import houses
 from src.endpoints.auth import auth
 
 def create_app():
@@ -23,10 +22,7 @@ def create_app():
          app.config['ENVIRONMENT'] = "development"
 
    app.config.from_object(config_class)
-   # app.register_blueprint(products)
    app.register_blueprint(users)
-   app.register_blueprint(houses)
-   #app.register_blueprint(products)
    app.register_blueprint(auth)
 
    db.init_app(app)

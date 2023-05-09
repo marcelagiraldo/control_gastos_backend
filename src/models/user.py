@@ -1,15 +1,14 @@
 from datetime import datetime
 from src.database import db,ma
 from werkzeug.security import generate_password_hash,check_password_hash
-#from src.models.product import Product
-from src.models.house import House
-from sqlalchemy.orm import validates
+#from sqlalchemy.orm import validates
 import re
 
 class User(db.Model):
-    id         = db.Column(db.String(10),primary_key=True)
+    document  = db.Column(db.String(10),primary_key=True)
+    document_type = db.Column(db.String(80),nullable=False)
     name       = db.Column(db.String(80),nullable=False)
-    email      = db.Column(db.String(60),unique=True, nullable=False)
+    lastname   = db.Column(db.String(80),nullable=False)
     password   = db.Column(db.String(128),nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
@@ -31,14 +30,14 @@ class User(db.Model):
 
     @staticmethod
     def hash_password(password):
-        if not password:
+        '''  if not password:
             raise AssertionError('Password not provided')
 
         if not re.match('\d.*[A-Z]|[A-Z].*\d', password):
             raise AssertionError('Password must contain 1 capital letter and 1 number')
 
         if len(password) < 7 or len(password) > 50:
-            raise AssertionError('Password must be between 7 and 50 characters')
+            raise AssertionError('Password must be between 7 and 50 characters') '''
         return generate_password_hash(password)
 
 
