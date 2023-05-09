@@ -23,8 +23,8 @@ def read_one(id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
 
-@revenue.post("/users/<int:user_id>/revenue")
-def create(user_id):
+@revenue.post("/users/<int:user_document>/revenue")
+def create(user_document):
     post_data = None
     try:
         post_data = request.get_json()
@@ -34,7 +34,7 @@ def create(user_id):
     revenue = Revenue(date_hour = request.get_json().get("date_hour",None),
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
-                user_id = user_id)
+                user_document = user_document)
 
     try:
         db.session.add(revenue)
@@ -45,8 +45,8 @@ def create(user_id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.CREATED
 
 #@revenue.patch('/<int:id>')
-@revenue.put('/users/<int:user_id>/revenue/<int:id>')
-def update(id,user_id):
+@revenue.put('/users/<int:user_document>/revenue/<int:id>')
+def update(id,user_document):
     post_data = None
     try:
         post_data = request.get_json()
@@ -58,12 +58,12 @@ def update(id,user_id):
     if (not revenue):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
-    revenue.date_hour = request.get_json().get("address",revenue.date_hpur)
+    revenue.date_hour = request.get_json().get("date_hour",revenue.date_hour)
     revenue.value = request.get_json().get("value",revenue.value)
-    revenue.cumulative = request.get_json().get("flour_count",revenue.flour_count)
+    revenue.cumulative = request.get_json().get("cumulative",revenue.cumulative)
 
-    if (user_id != revenue.user_id):
-        revenue.user_id = user_id
+    if (user_document != revenue.user_document):
+        revenue.user_document = user_document
 
     try:
         db.session.commit()
