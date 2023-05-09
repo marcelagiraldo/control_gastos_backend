@@ -3,15 +3,15 @@ from http import HTTPStatus
 import sqlalchemy.exc
 from src.database import db
 import werkzeug
+from datetime import datetime
+from src.models.expense import Expense, expense_schema, expenses_schema
 
-from src.models.expense import Expense, expenses_schema, expensess_schema
-
-expenses = Blueprint("expensess",__name__,url_prefix="/api/v1")
+expenses = Blueprint("expenses",__name__,url_prefix="/api/v1")
 
 @expenses.get("/expenses")
 def read_all():
- expense = Expense.query.order_by(Expense.id).all()
- return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
+    expense = Expense.query.order_by(Expense.id).all()
+    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
 @expenses.get("/expenses/<int:id>")
 def read_one(id):
@@ -20,21 +20,25 @@ def read_one(id):
     if(not expense):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
-    return {"data":expenses_schema.dump(expense)},HTTPStatus.OK
+    return {"data":expense_schema.dump(expense)},HTTPStatus.OK
 
 
-@expenses.post("/users/<int:user_id>/expenses")
-def create(user_id):
+@expenses.post("/users/<int:user_document>/expenses")
+def create(user_document):
     post_data = None
     try:
         post_data = request.get_json()
     except werkzeug.exceptions.BadRequest as e:
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    expense = Expense(date_hour = request.get_json().get("date_hour",None),
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+
+    expense = Expense(
+                date_hour = date_hour_,
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
-                user_id = user_id)
+                user_document = user_document)
 
     try:
         db.session.add(expense)
@@ -42,11 +46,11 @@ def create(user_id):
     except sqlalchemy.exc.IntegrityError as e:
         return {"error":"Invalid resource values","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    return {"data":expenses_schema.dump(expense)},HTTPStatus.CREATED
+    return {"data":expense_schema.dump(expense)},HTTPStatus.CREATED
 
 #@expenses.patch('/<int:id>')
-@expenses.put('/users/<int:user_id>/expenses/<int:id>')
-def update(id,user_id):
+@expenses.put('/users/<int:user_document>/expenses/<int:id>')
+def update(id,user_document):
     post_data = None
     try:
         post_data = request.get_json()
@@ -58,19 +62,22 @@ def update(id,user_id):
     if (not expense):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
-    expense.date_hour = request.get_json().get("address",expense.date_hpur)
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+    
+    expense.date_hour = date_hour_
     expense.value = request.get_json().get("value",expense.value)
-    expense.cumulative = request.get_json().get("flour_count",expense.flour_count)
+    expense.cumulative = request.get_json().get("cumulative",expense.cumulative)
 
-    if (user_id != expense.user_id):
-        expense.user_id = user_id
+    if (user_document != expense.user_document):
+        expense.user_document = user_document
 
     try:
         db.session.commit()
     except sqlalchemy.exc.IntegrityError as e:
         return {"error":"Invalid resource values","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    return {"data":expenses_schema.dump(expense)},HTTPStatus.OK
+    return {"data":expense_schema.dump(expense)},HTTPStatus.OK
 
 @expenses.delete("/expenses/<int:id>")
 def delete(id):
@@ -84,4 +91,4 @@ def delete(id):
     except sqlalchemy.exc.IntegrityError as e:
         return {"error":"Invalid resource values","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    return {"data":expenses_schema.dump(expense)},HTTPStatus.NO_CONTENT
+    return {"data":expense_schema.dump(expense)},HTTPStatus.NO_CONTENT

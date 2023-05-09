@@ -1,6 +1,8 @@
 from datetime import datetime
 from src.database import db,ma
 from werkzeug.security import generate_password_hash,check_password_hash
+from src.models.expense import Expense
+from src.models.revenue import Revenue
 #from sqlalchemy.orm import validates
 import re
 

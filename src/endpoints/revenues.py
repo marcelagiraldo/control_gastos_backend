@@ -3,17 +3,17 @@ from http import HTTPStatus
 import sqlalchemy.exc
 from src.database import db
 import werkzeug
-
+from datetime import datetime
 from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
-revenue = Blueprint("revenue",__name__,url_prefix="/api/v1")
+revenues = Blueprint("revenue",__name__,url_prefix="/api/v1")
 
-@revenue.get("/revenue")
+@revenues.get("/revenue")
 def read_all():
- revenue = Revenue.query.order_by(Revenue.address).all()
- return {"data": revenue_schema.dump(revenue)}, HTTPStatus.OK
+    revenue = Revenue.query.order_by(Revenue.address).all()
+    return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
-@revenue.get("/revenue/<int:id>")
+@revenues.get("/revenue/<int:id>")
 def read_one(id):
     revenue = Revenue.query.filter_by(id=id).first()
 
@@ -23,18 +23,22 @@ def read_one(id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
 
-@revenue.post("/users/<int:user_id>/revenue")
-def create(user_id):
+@revenues.post("/users/<int:user_id>/revenue")
+def create(user_document):
     post_data = None
     try:
         post_data = request.get_json()
     except werkzeug.exceptions.BadRequest as e:
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    revenue = Revenue(date_hour = request.get_json().get("date_hour",None),
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+
+    revenue = Revenue(
+                date_hour = date_hour_,
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
-                user_id = user_id)
+                user_document = user_document)
 
     try:
         db.session.add(revenue)
@@ -45,8 +49,8 @@ def create(user_id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.CREATED
 
 #@revenue.patch('/<int:id>')
-@revenue.put('/users/<int:user_id>/revenue/<int:id>')
-def update(id,user_id):
+@revenues.put('/users/<int:user_document>/revenue/<int:id>')
+def update(id,user_document):
     post_data = None
     try:
         post_data = request.get_json()
@@ -58,12 +62,15 @@ def update(id,user_id):
     if (not revenue):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
-    revenue.date_hour = request.get_json().get("address",revenue.date_hpur)
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+    
+    revenue.date_hour = date_hour_
     revenue.value = request.get_json().get("value",revenue.value)
-    revenue.cumulative = request.get_json().get("flour_count",revenue.flour_count)
+    revenue.cumulative = request.get_json().get("cumulative",revenue.cumulative)
 
-    if (user_id != revenue.user_id):
-        revenue.user_id = user_id
+    if (user_document != revenue.user_document):
+        revenue.user_document = user_document
 
     try:
         db.session.commit()
@@ -72,7 +79,7 @@ def update(id,user_id):
 
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
-@revenue.delete("/revenue/<int:id>")
+@revenues.delete("/revenue/<int:id>")
 def delete(id):
     revenue = Revenue.query.filter_by(id=id).first()
     if (not revenue):
