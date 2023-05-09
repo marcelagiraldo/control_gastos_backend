@@ -13,8 +13,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
-    #products = db.relationship('Product',backref="owner")
-    ''' users = db.relationship('User',backref="owner") '''
+    expenses = db.relationship('Expense', backref="owner_expense")
+    revenues = db.relationship('Revenue', backref="owner_revenue")
 
     def __init__(self, **fields):
         super().__init__(**fields)
