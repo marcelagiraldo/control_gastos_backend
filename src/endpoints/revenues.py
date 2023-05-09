@@ -8,12 +8,12 @@ from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
 revenues = Blueprint("revenue",__name__,url_prefix="/api/v1")
 
-@revenues.get("/revenue")
+@revenues.get("/revenues")
 def read_all():
     revenue = Revenue.query.order_by(Revenue.address).all()
     return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
-@revenues.get("/revenue/<int:id>")
+@revenues.get("/revenues/<int:id>")
 def read_one(id):
     revenue = Revenue.query.filter_by(id=id).first()
 
@@ -23,7 +23,7 @@ def read_one(id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
 
-@revenues.post("/users/<int:user_id>/revenue")
+@revenues.post("/users/<int:user_document>/revenues")
 def create(user_document):
     post_data = None
     try:
@@ -49,7 +49,7 @@ def create(user_document):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.CREATED
 
 #@revenue.patch('/<int:id>')
-@revenues.put('/users/<int:user_document>/revenue/<int:id>')
+@revenues.put('/users/<int:user_document>/revenues/<int:id>')
 def update(id,user_document):
     post_data = None
     try:
@@ -79,7 +79,7 @@ def update(id,user_document):
 
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
-@revenues.delete("/revenue/<int:id>")
+@revenues.delete("/revenues/<int:id>")
 def delete(id):
     revenue = Revenue.query.filter_by(id=id).first()
     if (not revenue):
