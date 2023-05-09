@@ -16,7 +16,7 @@ class Revenue(db.Model):
         super().__init__(**fields)
 
     def __repr__(self) -> str:
-        return f"User >>> {self.name}"
+        return f"Revenue >>> {self.id}"
 
 class RevenueSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

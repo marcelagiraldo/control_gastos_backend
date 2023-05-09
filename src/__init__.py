@@ -4,6 +4,8 @@ from os import environ
 from src.database import db,ma,migrate,jwt
 #from src.endpoints.products import products
 from src.endpoints.users import users
+from src.endpoints.expenses import expenses
+from src.endpoints.revenues import revenues
 from src.endpoints.auth import auth
 
 def create_app():
@@ -23,6 +25,8 @@ def create_app():
 
    app.config.from_object(config_class)
    app.register_blueprint(users)
+   app.register_blueprint(expenses)
+   app.register_blueprint(revenues)
    app.register_blueprint(auth)
 
    db.init_app(app)

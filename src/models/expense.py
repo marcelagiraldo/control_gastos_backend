@@ -16,7 +16,7 @@ class Expense(db.Model):
         super().__init__(**fields)
 
     def __repr__(self) -> str:
-        return f"User >>> {self.name}"
+        return f"Expense >>> {self.id}"
 
 class ExpenseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
@@ -24,5 +24,5 @@ class ExpenseSchema(ma.SQLAlchemyAutoSchema):
         model = Expense
         include_fk = True
 
-revenue_schema = ExpenseSchema()
-revenues_schema = ExpenseSchema(many=True)
+expense_schema = ExpenseSchema()
+expenses_schema = ExpenseSchema(many=True)

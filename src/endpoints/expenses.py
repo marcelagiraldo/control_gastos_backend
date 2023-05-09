@@ -3,6 +3,8 @@ from http import HTTPStatus
 import sqlalchemy.exc
 from src.database import db
 import werkzeug
+from datetime import datetime
+from src.models.expense import Expense, expense_schema, expenses_schema
 
 from src.models.expense import Expense, expense_schema, expenses_schema
 
@@ -10,8 +12,8 @@ expenses = Blueprint("expenses",__name__,url_prefix="/api/v1")
 
 @expenses.get("/expenses")
 def read_all():
- expense = Expense.query.order_by(Expense.id).all()
- return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
+    expense = Expense.query.order_by(Expense.id).all()
+    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
 @expenses.get("/expenses/<int:id>")
 def read_one(id):
@@ -31,7 +33,11 @@ def create(user_document):
     except werkzeug.exceptions.BadRequest as e:
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    expense = Expense(date_hour = request.get_json().get("date_hour",None),
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+
+    expense = Expense(
+                date_hour = date_hour_,
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
                 user_document = user_document)

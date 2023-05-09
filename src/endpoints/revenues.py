@@ -3,17 +3,17 @@ from http import HTTPStatus
 import sqlalchemy.exc
 from src.database import db
 import werkzeug
-
+from datetime import datetime
 from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
-revenue = Blueprint("revenue",__name__,url_prefix="/api/v1")
+revenues = Blueprint("revenue",__name__,url_prefix="/api/v1")
 
-@revenue.get("/revenue")
+@revenues.get("/revenues")
 def read_all():
- revenue = Revenue.query.order_by(Revenue.address).all()
- return {"data": revenue_schema.dump(revenue)}, HTTPStatus.OK
+    revenue = Revenue.query.order_by(Revenue.id).all()
+    return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
-@revenue.get("/revenue/<int:id>")
+@revenues.get("/revenues/<int:id>")
 def read_one(id):
     revenue = Revenue.query.filter_by(id=id).first()
 
@@ -23,7 +23,7 @@ def read_one(id):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
 
-@revenue.post("/users/<int:user_document>/revenue")
+@revenues.post("/users/<int:user_document>/revenues")
 def create(user_document):
     post_data = None
     try:
@@ -31,7 +31,11 @@ def create(user_document):
     except werkzeug.exceptions.BadRequest as e:
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
-    revenue = Revenue(date_hour = request.get_json().get("date_hour",None),
+    date_hour = request.get_json().get("date_hour",None)
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+
+    revenue = Revenue(
+                date_hour = date_hour_,
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
                 user_document = user_document)
@@ -45,7 +49,7 @@ def create(user_document):
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.CREATED
 
 #@revenue.patch('/<int:id>')
-@revenue.put('/users/<int:user_document>/revenue/<int:id>')
+@revenues.put('/users/<int:user_document>/revenues/<int:id>')
 def update(id,user_document):
     post_data = None
     try:
@@ -72,7 +76,7 @@ def update(id,user_document):
 
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
-@revenue.delete("/revenue/<int:id>")
+@revenues.delete("/revenues/<int:id>")
 def delete(id):
     revenue = Revenue.query.filter_by(id=id).first()
     if (not revenue):
