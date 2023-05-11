@@ -6,7 +6,8 @@ import werkzeug
 from datetime import datetime
 from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
-revenues = Blueprint("revenue",__name__,url_prefix="/api/v1")
+revenues = Blueprint("revenues",__name__,url_prefix="/api/v1")
+
 
 @revenues.get("/revenues")
 def read_all():

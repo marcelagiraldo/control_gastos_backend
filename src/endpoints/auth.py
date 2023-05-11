@@ -14,7 +14,7 @@ def login():
  username = request.json.get("username", None)
  password = request.json.get("password", None)
 
- user = User.query.filter_by(id=username).one_or_none()
+ user = User.query.filter_by(document=username).one_or_none()
  if not user or not user.check_password(password):
     return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
  access_token = create_access_token(identity=user_schema.dump(user))
@@ -22,4 +22,24 @@ def login():
  response = {"access_token": access_token}
 
  return response, HTTPStatus.OK
+
+@auth.get("/login/users/<int:document>")
+def get_user(document):
+   user = User.query.filter_by(document=document).first()
+   username = request.json.get("username", None)
+   password = request.json.get("password", None)
+
+   if not user or not user.check_password(password):
+      return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
+
+   print(f'username: {username}')
+   print(f'documento: {user.document}')
+
+   print(f'password: {password}')
+   print(f'password: {user.password}')
+
+   if (username!=user.document and password!=user.password):
+      return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
+
+   return {"data":user_schema.dump(user)},HTTPStatus.OK
 
