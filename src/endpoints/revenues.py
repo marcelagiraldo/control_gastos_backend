@@ -6,11 +6,12 @@ import werkzeug
 from datetime import datetime
 from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
-revenues = Blueprint("revenue",__name__,url_prefix="/api/v1")
+revenues = Blueprint("revenues",__name__,url_prefix="/api/v1")
+
 
 @revenues.get("/revenues")
 def read_all():
-    revenue = Revenue.query.order_by(Revenue.address).all()
+    revenue = Revenue.query.order_by(Revenue.id).all()
     return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
 @revenues.get("/revenues/<int:id>")
@@ -32,7 +33,7 @@ def create(user_document):
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
     date_hour = request.get_json().get("date_hour",None)
-    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M')
 
     revenue = Revenue(
                 date_hour = date_hour_,
@@ -62,10 +63,7 @@ def update(id,user_document):
     if (not revenue):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
-    date_hour = request.get_json().get("date_hour",None)
-    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
-    
-    revenue.date_hour = date_hour_
+    revenue.date_hour = request.get_json().get("date_hour",revenue.date_hour)
     revenue.value = request.get_json().get("value",revenue.value)
     revenue.cumulative = request.get_json().get("cumulative",revenue.cumulative)
 
