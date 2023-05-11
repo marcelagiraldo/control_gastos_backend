@@ -11,15 +11,16 @@ auth = Blueprint("auth",__name__,url_prefix="/api/v1/auth")
 
 @auth.post("/login")
 def login():
- username = request.json.get("username", None)
- password = request.json.get("password", None)
+   username = request.json.get("username", None)
+   password = request.json.get("password", None)
 
- user = User.query.filter_by(id=username).one_or_none()
- if not user or not user.check_password(password):
-    return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
- access_token = create_access_token(identity=user_schema.dump(user))
+   user = User.query.filter_by(id=username).one_or_none()
+   if not user or not user.check_password(password):
+      return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
+   
+   access_token = create_access_token(identity=user_schema.dump(user))
 
- response = {"access_token": access_token}
+   response = {"access_token": access_token}
 
- return response, HTTPStatus.OK
+   return response, HTTPStatus.OK
 
