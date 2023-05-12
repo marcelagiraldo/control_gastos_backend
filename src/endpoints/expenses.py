@@ -4,11 +4,21 @@ import sqlalchemy.exc
 from src.database import db
 import werkzeug
 from datetime import datetime
+from sqlalchemy.orm import Session
 from src.models.expense import Expense, expense_schema, expenses_schema
 
 from src.models.expense import Expense, expense_schema, expenses_schema
 
 expenses = Blueprint("expenses",__name__,url_prefix="/api/v1")
+
+
+@expenses.get("/expenses")
+def consulta_fecha():
+    inicio = datetime.strptime(request.args.get('inicio'), '%Y-%m-%d')
+    fin = datetime.strptime(request.args.get('fin'), '%Y-%m-%d')
+    expense = Expense.query.order_by(Expense.id).filter(Expense.created_at >= inicio, Expense.created_at <= fin).all()
+
+    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
 @expenses.get("/expenses")
 def read_all():
@@ -34,7 +44,7 @@ def create(user_document):
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
     date_hour = request.get_json().get("date_hour",None)
-    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M').date()
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M:%S')
 
     expense = Expense(
                 date_hour = date_hour_,

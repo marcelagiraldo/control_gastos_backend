@@ -15,8 +15,8 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
-    expenses = db.relationship('Expense', backref="owner_expense")
-    revenues = db.relationship('Revenue', backref="owner_revenue")
+    expenses = db.relationship('Expense', backref="owner")
+    revenues = db.relationship('Revenue', backref="owner")
 
     def __init__(self, **fields):
         super().__init__(**fields)
