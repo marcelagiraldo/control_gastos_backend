@@ -30,6 +30,8 @@ def read_one(document):
     return {"data":user_schema.dump(user)},HTTPStatus.OK
 
 
+@users.get("/expenses")
+
 @users.post("/")
 def create():
     post_data = None

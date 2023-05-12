@@ -44,7 +44,7 @@ def create(user_document):
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
 
     date_hour = request.get_json().get("date_hour",None)
-    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M:%S')
+    date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M')
 
     expense = Expense(
                 date_hour = date_hour_,

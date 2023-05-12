@@ -5,7 +5,7 @@ import re
 
 class Expense(db.Model):
     id     = db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
-    date_hour       = db.Column(db.DateTime)
+    date_hour       = db.Column(db.Date)
     value      = db.Column(db.Double,nullable=False)
     cumulative = db.Column(db.Double)
     created_at = db.Column(db.DateTime, default=datetime.now())

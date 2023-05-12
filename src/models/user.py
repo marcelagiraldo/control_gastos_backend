@@ -27,7 +27,6 @@ class User(db.Model):
     def __setattr__(self, name, value):
         if(name == "password"):
             value = User.hash_password(value)
-
         super(User,self).__setattr__(name, value)
 
     @staticmethod
@@ -41,7 +40,6 @@ class User(db.Model):
         if len(password) < 7 or len(password) > 50:
             raise AssertionError('Password must be between 7 and 50 characters') '''
         return generate_password_hash(password)
-
 
     def check_password(self,password):
         return check_password_hash(self.password,password)
