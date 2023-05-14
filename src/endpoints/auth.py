@@ -17,7 +17,7 @@ def login():
    user = User.query.filter_by(document=username).one_or_none()
    if not user or not user.check_password(password):
       return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
-   
+
    access_token = create_access_token(identity=user_schema.dump(user))
 
    response = {"access_token": access_token}

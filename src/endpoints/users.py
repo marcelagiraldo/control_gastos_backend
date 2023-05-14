@@ -4,38 +4,34 @@ import sqlalchemy.exc
 from src.database import db
 import werkzeug
 from src.models.user import User, user_schema, users_schema
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required,get_jwt_identity
 from datetime import datetime
-from src.models.expense import Expense, expense_schema, expenses_schema
-from src.models.revenue import Revenue, revenue_schema, revenues_schema
+from src.models.expense import Expense,expenses_schema
+from src.models.revenue import Revenue,revenues_schema
+
 
 users = Blueprint("users",__name__,url_prefix="/api/v1/users")
 
-''' @jwt_required()
-@users.get("/current")
-def read_current():
-    user = User.query.filter_by(id=get_jwt_identity()).first()
+@users.get("/")
+@jwt_required()
+def read_user():
+    user = User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
+
     if(not user):
         return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
-    return {"data": user_schema.dump(user)}, HTTPStatus.OK '''
+    return {"data": user_schema.dump(user)}, HTTPStatus.OK
 
-@users.get("/")
+@users.get("/users")
 def read_all():
     users = User.query.order_by(User.name).all()
     return {"data": users_schema.dump(users)}, HTTPStatus.OK
-
-@users.get("/")
-@jwt_required()
-def read_one(self):
-    #user = User.query.filter_by(document=document).first()
-    
-    user = User.query.filter_by(document=get_jwt_identity()).first()
+'''
+@users.get("")
+def readUser():
+    user = User.query.filter_by(document=document).first()
     if(not user):
-        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
-    
-    #return {"data":user_schema.dump(user)},HTTPStatus.OK
-    return {"data":user},HTTPStatus.OK
+        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
+    return {"data":user_schema.dump(user)},HTTPStatus.OK '''
 
 @users.get("/expenses") # api/v1/expenses?inicio=2023-05-09&fin=2023-05-10
 @jwt_required()
@@ -87,21 +83,12 @@ def create():
 
     return {"data":user_schema.dump(user)},HTTPStatus.CREATED
 
-@users.patch('/')
 @users.put('/')
 @jwt_required()
-def update():
-    post_data=None
+def update_user():
 
-    try:
-        post_data=request.get_json()
-    except werkzeug.exceptions.BadRequest as e:
-        return {"error":"Post body JSON data not found",
-                "message":str(e)}, HTTPStatus.BAD_REQUEST
+    user=User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
 
-    #user=User.query.filter_by(document=document).first()
-    
-    user = User.query.filter_by(document=get_jwt_identity()).first()
     if(not user):
         return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
 
@@ -120,15 +107,11 @@ def update():
 
 @users.delete("/")
 @jwt_required()
-def delete():
-    ''' user = User.query.filter_by(document=document).first()
+def delete_user():
+    user = User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
     if (not user):
-        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND '''
+        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND 
     
-    user = User.query.filter_by(document=get_jwt_identity()).first()
-    if(not user):
-        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
-
     try:
         db.session.delete(user)
         db.session.commit()
