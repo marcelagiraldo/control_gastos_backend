@@ -4,30 +4,34 @@ import sqlalchemy.exc
 from src.database import db
 import werkzeug
 from src.models.user import User, user_schema, users_schema
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required,get_jwt_identity
+from datetime import datetime
+from src.models.expense import Expense,expenses_schema
+from src.models.revenue import Revenue,revenues_schema
 
 
 users = Blueprint("users",__name__,url_prefix="/api/v1/users")
 
-''' @jwt_required()
-@users.get("/current")
-def read_current():
-    user = User.query.filter_by(id=get_jwt_identity()).first()
+@users.get("/")
+@jwt_required()
+def read_user():
+    user = User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
+
     if(not user):
         return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
-    return {"data": user_schema.dump(user)}, HTTPStatus.OK '''
+    return {"data": user_schema.dump(user)}, HTTPStatus.OK
 
-@users.get("/")
+@users.get("/users")
 def read_all():
     users = User.query.order_by(User.name).all()
     return {"data": users_schema.dump(users)}, HTTPStatus.OK
-
-@users.get("/<int:document>")
-def read_one(document):
+'''
+@users.get("")
+def readUser():
     user = User.query.filter_by(document=document).first()
     if(not user):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
-    return {"data":user_schema.dump(user)},HTTPStatus.OK
+    return {"data":user_schema.dump(user)},HTTPStatus.OK '''
 
 
 @users.get("/expenses")
@@ -54,18 +58,11 @@ def create():
 
     return {"data":user_schema.dump(user)},HTTPStatus.CREATED
 
-@users.patch('/<int:document>')
-@users.put('/<int:document>')
-def update(document):
-    post_data=None
+@users.put('/')
+@jwt_required()
+def update_user():
 
-    try:
-        post_data=request.get_json()
-    except werkzeug.exceptions.BadRequest as e:
-        return {"error":"Post body JSON data not found",
-                "message":str(e)}, HTTPStatus.BAD_REQUEST
-
-    user=User.query.filter_by(document=document).first()
+    user=User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
 
     if(not user):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
@@ -83,9 +80,10 @@ def update(document):
 
     return {"data":user_schema.dump(user)}, HTTPStatus.OK
 
-@users.delete("/<int:document>")
-def delete(document):
-    user = User.query.filter_by(document=document).first()
+@users.delete("/")
+@jwt_required()
+def delete_user():
+    user = User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
     if (not user):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 

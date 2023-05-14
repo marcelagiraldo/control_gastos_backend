@@ -5,7 +5,7 @@ import re
 
 class Expense(db.Model):
     id     = db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
-    date_hour       = db.Column(db.Date)
+    date_hour       = db.Column(db.DateTime)
     value      = db.Column(db.Double,nullable=False)
     cumulative = db.Column(db.Double)
     created_at = db.Column(db.DateTime, default=datetime.now())
@@ -17,6 +17,11 @@ class Expense(db.Model):
 
     def __repr__(self) -> str:
         return f"Expense >>> {self.id}"
+
+    def parse_date_hour(date_hour_str):
+        if (not date_hour_str):
+            return None
+        return datetime.strptime(date_hour_str, '%Y-%m-%d %H:%M')
 
 class ExpenseSchema(ma.SQLAlchemyAutoSchema):
     class Meta:

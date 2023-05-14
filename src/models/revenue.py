@@ -18,6 +18,11 @@ class Revenue(db.Model):
     def __repr__(self) -> str:
         return f"Revenue >>> {self.id}"
 
+    def parse_date_hour(date_hour_str):
+        if (not date_hour_str):
+            return None
+        return datetime.strptime(date_hour_str, '%Y-%m-%d %H:%M')
+
 class RevenueSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         #fields = ()
