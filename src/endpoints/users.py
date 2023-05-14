@@ -4,8 +4,11 @@ import sqlalchemy.exc
 from src.database import db
 import werkzeug
 from src.models.user import User, user_schema, users_schema
+from flask_jwt_extended import get_jwt_identity
 from flask_jwt_extended import jwt_required
-
+from datetime import datetime
+from src.models.expense import Expense, expense_schema, expenses_schema
+from src.models.revenue import Revenue, revenue_schema, revenues_schema
 
 users = Blueprint("users",__name__,url_prefix="/api/v1/users")
 
@@ -22,15 +25,45 @@ def read_all():
     users = User.query.order_by(User.name).all()
     return {"data": users_schema.dump(users)}, HTTPStatus.OK
 
-@users.get("/<int:document>")
-def read_one(document):
-    user = User.query.filter_by(document=document).first()
+@users.get("/")
+@jwt_required()
+def read_one(self):
+    #user = User.query.filter_by(document=document).first()
+    
+    user = User.query.filter_by(document=get_jwt_identity()).first()
     if(not user):
-        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
-    return {"data":user_schema.dump(user)},HTTPStatus.OK
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
+    
+    #return {"data":user_schema.dump(user)},HTTPStatus.OK
+    return {"data":user},HTTPStatus.OK
 
+@users.get("/expenses") # api/v1/expenses?inicio=2023-05-09&fin=2023-05-10
+@jwt_required()
+def consulta_fecha_egresos():
+    inicio = datetime.strptime(request.args.get('inicio'), '%Y-%m-%d')
+    fin = datetime.strptime(request.args.get('fin'), '%Y-%m-%d')
+    
+    user = User.query.filter_by(document=get_jwt_identity()).first()
+    if(not user):
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
+    
+    expense = Expense.query.order_by(Expense.id).filter(Expense.user_document == user.document, Expense.created_at >= inicio, Expense.created_at <= fin).all()
 
-@users.get("/expenses")
+    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
+
+@users.get("/revenues") # api/v1/revenues?inicio=2023-05-09&fin=2023-05-10
+@jwt_required()
+def consulta_fecha_ingresos():
+    inicio = datetime.strptime(request.args.get('inicio'), '%Y-%m-%d')
+    fin = datetime.strptime(request.args.get('fin'), '%Y-%m-%d')
+    
+    user = User.query.filter_by(document=get_jwt_identity()).first()
+    if(not user):
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
+    
+    revenue = Revenue.query.order_by(Revenue.id).filter(Revenue.user_document == user.document, Revenue.created_at >= inicio, Revenue.created_at <= fin).all()
+
+    return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
 @users.post("/")
 def create():
@@ -54,9 +87,10 @@ def create():
 
     return {"data":user_schema.dump(user)},HTTPStatus.CREATED
 
-@users.patch('/<int:document>')
-@users.put('/<int:document>')
-def update(document):
+@users.patch('/')
+@users.put('/')
+@jwt_required()
+def update():
     post_data=None
 
     try:
@@ -65,10 +99,11 @@ def update(document):
         return {"error":"Post body JSON data not found",
                 "message":str(e)}, HTTPStatus.BAD_REQUEST
 
-    user=User.query.filter_by(document=document).first()
-
+    #user=User.query.filter_by(document=document).first()
+    
+    user = User.query.filter_by(document=get_jwt_identity()).first()
     if(not user):
-        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
 
     user.document_type = request.get_json().get("document_type", user.document_type)
     user.name = request.get_json().get("name", user.name)
@@ -83,11 +118,16 @@ def update(document):
 
     return {"data":user_schema.dump(user)}, HTTPStatus.OK
 
-@users.delete("/<int:document>")
-def delete(document):
-    user = User.query.filter_by(document=document).first()
+@users.delete("/")
+@jwt_required()
+def delete():
+    ''' user = User.query.filter_by(document=document).first()
     if (not user):
-        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
+        return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND '''
+    
+    user = User.query.filter_by(document=get_jwt_identity()).first()
+    if(not user):
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
 
     try:
         db.session.delete(user)

@@ -6,23 +6,24 @@ import werkzeug
 from datetime import datetime
 from sqlalchemy.orm import Session
 from src.models.expense import Expense, expense_schema, expenses_schema
-
-from src.models.expense import Expense, expense_schema, expenses_schema
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity
+from src.models.user import User, user_schema, users_schema
+from src.endpoints.users import read_one
+import argparse
 
 expenses = Blueprint("expenses",__name__,url_prefix="/api/v1")
 
-
 @expenses.get("/expenses")
-def consulta_fecha():
-    inicio = datetime.strptime(request.args.get('inicio'), '%Y-%m-%d')
-    fin = datetime.strptime(request.args.get('fin'), '%Y-%m-%d')
-    expense = Expense.query.order_by(Expense.id).filter(Expense.created_at >= inicio, Expense.created_at <= fin).all()
-
-    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
-
-@expenses.get("/expenses")
+@jwt_required()
 def read_all():
-    expense = Expense.query.order_by(Expense.id).all()
+    
+    user = read_one()
+    ''' user = User.query.filter_by(id=get_jwt_identity()).first()
+    if(not user):
+        return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND '''
+    expense = Expense.query.order_by(Expense.id).filter(Expense.user_document == user.document).all()
+    
     return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
 @expenses.get("/expenses/<int:id>")
@@ -35,14 +36,22 @@ def read_one(id):
     return {"data":expense_schema.dump(expense)},HTTPStatus.OK
 
 
-@expenses.post("/users/<int:user_document>/expenses")
-def create(user_document):
+@expenses.post("/expenses")
+@jwt_required()
+def create():
     post_data = None
     try:
         post_data = request.get_json()
     except werkzeug.exceptions.BadRequest as e:
         return {"error":"Post body JSON data not found","message":str(e)},HTTPStatus.BAD_REQUEST
-
+    user = read_one(self)
+    
+    #rawUser = User.query.filter_by(document=get_jwt_identity()).first()
+    
+    #if(not rawUser):
+    #    return {"error": "Resource not found"}, HTTPStatus.NOT_FOUND
+    #user = argparse.Namespace(**raw_user)
+    #return {"data": user},HTTPStatus.OK
     date_hour = request.get_json().get("date_hour",None)
     date_hour_ = datetime.strptime(date_hour, '%Y-%m-%d %H:%M')
 
@@ -50,7 +59,7 @@ def create(user_document):
                 date_hour = date_hour_,
                 value = request.get_json().get("value",None),
                 cumulative = request.get_json().get("cumulative",None),
-                user_document = user_document)
+                user_document = user.document)
 
     try:
         db.session.add(expense)

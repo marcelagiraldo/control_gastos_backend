@@ -14,7 +14,7 @@ def login():
    username = request.json.get("username", None)
    password = request.json.get("password", None)
 
-   user = User.query.filter_by(id=username).one_or_none()
+   user = User.query.filter_by(document=username).one_or_none()
    if not user or not user.check_password(password):
       return {"error": "Wrong username or password"}, HTTPStatus.UNAUTHORIZED
    
