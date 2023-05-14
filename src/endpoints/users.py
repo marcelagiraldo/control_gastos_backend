@@ -95,3 +95,16 @@ def delete_user():
 
     return {"data":user_schema.dump(user)},HTTPStatus.NO_CONTENT
 
+@users.get("/balance")
+@jwt_required()
+def Balance():
+    user=read_user()[0]['data']
+    userDocument=user['document']
+    expense = Expense.query.filter(Expense.user_document == userDocument).all()
+    revenue = Revenue.query.filter(Revenue.user_document == userDocument).all()
+    total_expense = sum(exp.value for exp in expense)
+    total_revenue = sum(rev.value for rev in revenue)
+
+    balance = total_revenue - total_expense
+
+    return {"balance": balance}
