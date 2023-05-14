@@ -6,11 +6,10 @@ import werkzeug
 from datetime import datetime, timedelta
 from src.models.revenue import Revenue, revenue_schema, revenues_schema
 from src.endpoints.users import read_user
-from flask_jwt_extended import jwt_required,get_jwt_identity
-
 
 revenues = Blueprint("revenues",__name__,url_prefix="/api/v1/revenues")
 
+''' consulta rango de fechas revenues(ingresos) '''
 @revenues.get("/consulta")
 def consulta_fecha():
     user = read_user()[0]['data']
@@ -20,13 +19,11 @@ def consulta_fecha():
     inicio = datetime.strptime(request.args.get('inicio'), '%Y-%m-%d')
     fin = datetime.strptime(request.args.get('fin'), '%Y-%m-%d')
 
-    print(f'Los datos de consulta son: {userDocument}, {inicio}, {fin}')
-
     revenue = Revenue.query.order_by(Revenue.id).filter(Revenue.user_document==userDocument,Revenue.date_hour >= inicio, Revenue.date_hour < fin + timedelta(days=1)).all()
 
     return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
 
-''' Listar todos los ingresos perdenecientes al usuario que se encuentra autenticado '''
+''' Listar todos los ingresos pertenecientes al usuario que se encuentra autenticado '''
 @revenues.get("/")
 def read_revenues():
     user = read_user()[0]['data']
@@ -38,7 +35,8 @@ def read_revenues():
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
 
     return {"data":revenues_schema.dump(revenue)},HTTPStatus.OK
-''' Listar un ingreso perdeneciente al usuario que se encuentra autenticado '''
+
+''' Listar un ingreso perteneciente al usuario que se encuentra autenticado '''
 @revenues.get("/<int:id>")
 def read_revenue(id):
     revenue = Revenue.query.filter_by(id=id).one_or_none()
@@ -46,10 +44,12 @@ def read_revenue(id):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
 
-@revenues.get("/c")
+''' listar todos los ingresos de la base de datos  '''
+@revenues.get("/todos")
 def read_all():
     revenue = Revenue.query.order_by(Revenue.id).all()
     return {"data": revenues_schema.dump(revenue)}, HTTPStatus.OK
+
 ''' Crear un ingreso perdeneciente al usuario que se encuentra autenticado '''
 @revenues.post("/")
 def create():
@@ -66,7 +66,6 @@ def create():
     revenue = Revenue(
                 date_hour = date_hour,
                 value = request.get_json().get("value",None),
-                cumulative = request.get_json().get("cumulative",None),
                 user_document = userDocument)
 
     try:
@@ -95,7 +94,6 @@ def update_revenue(id):
 
     revenue.date_hour = Revenue.parse_date_hour(request.get_json().get("date_hour",revenue.date_hour))
     revenue.value = request.get_json().get("value",revenue.value)
-    revenue.cumulative = request.get_json().get("cumulative",revenue.cumulative)
 
     try:
         db.session.commit()
@@ -103,6 +101,7 @@ def update_revenue(id):
         return {"error":"Invalid resource values","message":str(e)},HTTPStatus.BAD_REQUEST
 
     return {"data":revenue_schema.dump(revenue)},HTTPStatus.OK
+
 ''' Eliminar un ingreso'''
 @revenues.delete("/<int:id>")
 def delete(id):

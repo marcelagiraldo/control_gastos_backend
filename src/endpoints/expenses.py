@@ -4,14 +4,13 @@ import sqlalchemy.exc
 from src.database import db
 import werkzeug
 from datetime import datetime,timedelta
-from sqlalchemy.orm import Session
 from src.models.expense import Expense, expense_schema, expenses_schema
 from src.endpoints.users import read_user
 from flask_jwt_extended import jwt_required
 
 expenses = Blueprint("expenses",__name__,url_prefix="/api/v1/expenses")
 
-''' Listar todos los egregos perdenecientes al usuario que se encuentra autenticado '''
+''' Listar todos los egresos pertenecientes al usuario que se encuentra autenticado '''
 @expenses.get("/")
 def read_expenses():
     user = read_user()[0]['data']
@@ -25,8 +24,8 @@ def read_expenses():
 
     return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
+''' traer todos los expenses de la base de datos '''
 @expenses.get("/todos")
-
 def read_all():
 
     expense = Expense.query.filter(Expense.id).all()
@@ -62,7 +61,7 @@ def read_expense(id):
 
     return {"data":expense_schema.dump(expense)},HTTPStatus.OK
 
-''' Crear un ingreso perdeneciente al usuario que se encuentra autenticado '''
+''' Crear un ingreso perteneciente al usuario que se encuentra autenticado '''
 @expenses.post("/")
 def create():
     post_data = None
@@ -78,7 +77,6 @@ def create():
     expense = Expense(
                 date_hour = date_hour,
                 value = request.get_json().get("value",None),
-                cumulative = request.get_json().get("cumulative",None),
                 user_document = userDocument)
 
     try:
@@ -105,7 +103,6 @@ def update_revenue(id):
 
     expense.date_hour = Expense.parse_date_hour(request.get_json().get("date_hour",expense.date_hour))
     expense.value = request.get_json().get("value",expense.value)
-    expense.cumulative = request.get_json().get("cumulative",expense.cumulative)
 
     try:
         db.session.commit()
