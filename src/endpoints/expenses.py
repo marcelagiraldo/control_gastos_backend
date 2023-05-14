@@ -47,9 +47,9 @@ def consulta_fecha():
 
     print(f'Los datos de consulta son: {userDocument}, {inicio}, {fin}')
 
-    revenue = Expense.query.order_by(Expense.id).filter(Expense.user_document==userDocument,Expense.date_hour >= inicio, Expense.date_hour < fin + timedelta(days=1)).all()
+    expense = Expense.query.order_by(Expense.id).filter(Expense.user_document==userDocument,Expense.date_hour >= inicio, Expense.date_hour < fin + timedelta(days=1)).all()
 
-    return {"data": expenses.dump(revenue)}, HTTPStatus.OK
+    return {"data": expenses_schema.dump(expense)}, HTTPStatus.OK
 
 ''' Listar un ingreso perdeneciente al usuario que se encuentra autenticado '''
 @expenses.get("/<int:id>")

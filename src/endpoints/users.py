@@ -74,10 +74,9 @@ def update_user():
     return {"data":user_schema.dump(user)}, HTTPStatus.OK
 
 ''' eliminar el usuario '''
-@users.delete("/")
-@jwt_required()
-def delete_user():
-    user = User.query.filter_by(document=get_jwt_identity()['document']).one_or_none()
+@users.delete("/<int:document>")
+def delete_user(document):
+    user = User.query.filter_by(document=document).first()
     if (not user):
         return {"error":"Resource not found"}, HTTPStatus.NOT_FOUND 
     
